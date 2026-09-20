@@ -584,9 +584,28 @@ function App() {
               </p>
             </div>
           ))}
-          
+
         </div>
-                <div className="bottom-nav">
+        </div>
+        <div className="dash-bottom-cards">
+          <div className="dash-bottom-card">
+            <div className="dash-bottom-card-icon">🔴</div>
+            <div className="dash-bottom-card-info">
+              <p className="dash-bottom-card-label">BIGGEST EXPENSE</p>
+              <p className="dash-bottom-card-value">Rent — $1,200</p>
+            </div>
+            <p className="dash-bottom-card-pct">31.4%</p>
+          </div>
+          <div className="dash-bottom-card">
+            <div className="dash-bottom-card-icon">🟢</div>
+            <div className="dash-bottom-card-info">
+              <p className="dash-bottom-card-label">REMAINING BUDGET</p>
+              <p className="dash-bottom-card-value">$680 left</p>
+            </div>
+            <p className="dash-bottom-card-pct positive">17.8%</p>
+          </div>
+        </div>
+        <div className="bottom-nav">
           <button className="nav-btn active" type="button">
             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
@@ -617,9 +636,7 @@ function App() {
             <span>Settings</span>
           </button>
         </div>
-        </div>
       </div>
-
     </div>
   );
 }

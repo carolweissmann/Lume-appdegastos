@@ -711,3 +711,12 @@
 .nav-add svg {
   stroke: white;
 }
+
+.dash-bottom-cards { display: flex; flex-direction: column; gap: 10px; margin: 16px 24px 0; }
+.dash-bottom-card { display: flex; align-items: center; gap: 12px; background: #111111; border-radius: 16px; padding: 14px 16px; }
+.dash-bottom-card-icon { font-size: 20px; }
+.dash-bottom-card-info { flex: 1; }
+.dash-bottom-card-label { font-size: 9px; font-weight: 600; color: #646464; letter-spacing: 1px; margin-bottom: 3px; }
+.dash-bottom-card-value { font-size: 14px; font-weight: 600; color: white; }
+.dash-bottom-card-pct { font-size: 13px; font-weight: 700; color: #E85002; }
+.dash-bottom-card-pct.positive { color: #22c55e; }
