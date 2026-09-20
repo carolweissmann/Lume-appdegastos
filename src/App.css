@@ -18,7 +18,9 @@
   #app {
     height: min(90vh, 900px);
     border-radius: 44px;
-    box-shadow: 0 48px 96px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    box-shadow:
+      0 48px 96px rgba(0, 0, 0, 0.8),
+      0 0 0 1px rgba(255, 255, 255, 0.05);
   }
 }
 
@@ -27,7 +29,9 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  transition: transform 0.48s var(--ease-out), opacity 0.48s var(--ease-out);
+  transition:
+    transform 0.48s var(--ease-out),
+    opacity 0.48s var(--ease-out);
   will-change: transform, opacity;
 }
 
@@ -60,19 +64,37 @@
 }
 
 .splash-hero::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 60% 72% at 32% -18%, rgba(232, 80, 2, 0.9) 0%, rgba(232, 80, 2, 0.22) 42%, transparent 66%),
-    radial-gradient(ellipse 42% 62% at 68% -12%, rgba(255, 145, 0, 0.75) 0%, rgba(255, 145, 0, 0.12) 42%, transparent 62%),
-    radial-gradient(ellipse 28% 48% at 50% -6%, rgba(255, 205, 80, 0.55) 0%, transparent 52%),
-    radial-gradient(ellipse 14% 28% at 50% 4%, rgba(255, 230, 140, 0.38) 0%, transparent 40%);
+    radial-gradient(
+      ellipse 60% 72% at 32% -18%,
+      rgba(232, 80, 2, 0.9) 0%,
+      rgba(232, 80, 2, 0.22) 42%,
+      transparent 66%
+    ),
+    radial-gradient(
+      ellipse 42% 62% at 68% -12%,
+      rgba(255, 145, 0, 0.75) 0%,
+      rgba(255, 145, 0, 0.12) 42%,
+      transparent 62%
+    ),
+    radial-gradient(
+      ellipse 28% 48% at 50% -6%,
+      rgba(255, 205, 80, 0.55) 0%,
+      transparent 52%
+    ),
+    radial-gradient(
+      ellipse 14% 28% at 50% 4%,
+      rgba(255, 230, 140, 0.38) 0%,
+      transparent 40%
+    );
   animation: lightBreath 5s ease-in-out infinite alternate;
 }
 
 .splash-hero::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0;
   left: 0;
@@ -82,8 +104,14 @@
 }
 
 @keyframes lightBreath {
-  from { opacity: 0.82; transform: scaleY(1); }
-  to { opacity: 1; transform: scaleY(1.06); }
+  from {
+    opacity: 0.82;
+    transform: scaleY(1);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1.06);
+  }
 }
 
 .splash-icon {
@@ -99,7 +127,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 48px rgba(232, 80, 2, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 0 48px rgba(232, 80, 2, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .splash-body {
@@ -136,7 +166,9 @@
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
-  transition: transform 0.15s ease, opacity 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
 }
 
 .btn-continue {
@@ -238,7 +270,9 @@
   font-weight: 400;
   color: var(--gray-900);
   outline: none;
-  transition: border-color 0.2s, background 0.2s;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
 }
 
 .input-wrap input::placeholder {
@@ -328,7 +362,9 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform 0.15s ease, background 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
 }
 
 .social-btn:active {
@@ -354,3 +390,166 @@
   text-decoration: underline;
   font-weight: 500;
 }
+
+#screen-dashboard {
+  background: var(--black);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.dash-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 52px 24px 16px;
+}
+
+.dash-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dash-logo {
+  width: 40px;
+  height: 40px;
+  background: #1a1a1a;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dash-app-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--white);
+}
+
+.dash-greeting {
+  font-size: 12px;
+  color: #646464;
+}
+
+.dash-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dash-live {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #1a1a1a;
+  border-radius: 100px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--white);
+}
+
+.dash-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+}
+
+.dash-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e85002;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+}
+.dash-net-worth-card {
+  margin: 8px 24px 0;
+  background: linear-gradient(
+    135deg,
+    #000000 0%,
+    #c10801 40%,
+    #f16001 75%,
+    #d9c3ab 100%
+  );
+  border-radius: 24px;
+  padding: 28px 24px;
+}
+
+.dash-nw-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+}
+
+.dash-nw-value {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  margin-bottom: 10px;
+}
+
+.dash-nw-main {
+  font-size: 42px;
+  font-weight: 800;
+  color: white;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+.dash-nw-cents {
+  font-size: 22px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 4px;
+}
+
+.dash-nw-sub {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 500;
+}
+.dash-cards-row {
+  display: flex;
+  gap: 10px;
+  padding: 16px 24px 0;
+}
+
+.dash-card {
+  flex: 1;
+  background: #111111;
+  border-radius: 16px;
+  padding: 14px 12px;
+}
+
+.dash-card-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: #646464;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.dash-card-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 4px;
+}
+
+.dash-card-change {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.dash-card-change.positive { color: #22c55e; }
+.dash-card-change.negative { color: #E85002; }
+.dash-card-change.goal { color: #22c55e; }
