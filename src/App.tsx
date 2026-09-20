@@ -1,6 +1,94 @@
 import { useState } from "react";
 import "./App.css";
 
+// ── CategoriesView ─────────────────────────────────────────
+const CAT_META: Record<string, {label: string; icon: string; color: string}> = {
+  housing:       { label: "Moradia",        icon: "🏠", color: "#7C3AED" },
+  food:          { label: "Alimentação",    icon: "🍔", color: "#EC4899" },
+  transport:     { label: "Transporte",     icon: "🚗", color: "#F97316" },
+  entertainment: { label: "Lazer",          icon: "🎬", color: "#8B5CF6" },
+  health:        { label: "Saúde",          icon: "💊", color: "#EF4444" },
+  other:         { label: "Outros",         icon: "📦", color: "#F59E0B" },
+};
+
+function CategoriesView({
+  expenses,
+  totalFixed,
+  storedFixed,
+  storedIncome,
+}: {
+  expenses: {id:number;amount:number;date:string;description:string;category:string}[];
+  totalFixed: number;
+  storedFixed: {name:string;amount:string}[];
+  storedIncome: number;
+}) {
+  // Group variable expenses by category
+  const catTotals: Record<string, number> = {};
+  expenses.forEach((e) => {
+    catTotals[e.category] = (catTotals[e.category] || 0) + e.amount;
+  });
+  // Add fixed expenses as housing
+  if (totalFixed > 0) {
+    catTotals["housing"] = (catTotals["housing"] || 0) + totalFixed;
+  }
+
+  const grandTotal = Object.values(catTotals).reduce((a, b) => a + b, 0);
+  const maxVal = Math.max(...Object.values(catTotals), 1);
+
+  // Sort by amount desc
+  const sorted = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
+
+  return (
+    <div className="cat-wrap">
+      {/* Stacked bar */}
+      <div className="cat-stacked-bar">
+        {sorted.map(([key, val]) => {
+          const meta = CAT_META[key] || { color: "#666" };
+          return (
+            <div
+              key={key}
+              className="cat-stacked-seg"
+              style={{ flex: val, background: meta.color }}
+            />
+          );
+        })}
+      </div>
+
+      {/* List */}
+      {sorted.map(([key, val]) => {
+        const meta = CAT_META[key] || { label: key, icon: "📦", color: "#666" };
+        const pct = grandTotal > 0 ? Math.round((val / grandTotal) * 100) : 0;
+        const barW = grandTotal > 0 ? (val / maxVal) * 100 : 0;
+        return (
+          <div className="cat-row" key={key}>
+            <div className="cat-row-top">
+              <span className="cat-dot" style={{ background: meta.color }} />
+              <span className="cat-name">{meta.icon} {meta.label}</span>
+              <span className="cat-amount">R$ {val.toFixed(2)}</span>
+              <span className="cat-pct">{pct}%</span>
+            </div>
+            <div className="cat-bar-track">
+              <div className="cat-bar-fill" style={{ width: `${barW}%`, background: meta.color }} />
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Total footer */}
+      <div className="cat-footer">
+        <div>
+          <p className="cat-footer-label">TOTAL</p>
+          <p className="cat-footer-total">R$ {grandTotal.toFixed(2)}</p>
+        </div>
+        <div className="cat-budget-pill">
+          <p className="cat-budget-label">ORÇAMENTO</p>
+          <p className="cat-budget-val">R$ {storedIncome.toFixed(2)}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [screen, setScreen] = useState<
     "splash" | "login" | "register" | "setup" | "dashboard" | "add" | "transactions" | "settings"
@@ -19,6 +107,7 @@ function App() {
   const [expenses, setExpenses] = useState<{id:number;amount:number;date:string;description:string;category:string;createdAt?:string}[]>(
     () => JSON.parse(localStorage.getItem("lume_expenses") || "[]")
   );
+  const [dashTab, setDashTab] = useState<"overview" | "categories">("overview");
   const [selectedMonth, setSelectedMonth] = useState<string>(() => {
     const n = new Date();
     return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}`;
@@ -651,11 +740,14 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
           </div>
         </div>
         <div className="dash-tabs">
-          <button className="dash-tab active">Overview</button>
+          <button className={`dash-tab ${dashTab === "overview" ? "active" : ""}`} onClick={() => setDashTab("overview")}>Overview</button>
           <button className="dash-tab" onClick={() => setScreen("transactions")}>Transactions</button>
-          <button className="dash-tab">Categories</button>
+          <button className={`dash-tab ${dashTab === "categories" ? "active" : ""}`} onClick={() => setDashTab("categories")}>Categories</button>
         </div>
-        <div className="dash-chart-card">
+        {dashTab === "categories" ? (
+          <CategoriesView expenses={storedExpenses} totalFixed={totalFixed} storedFixed={storedFixed} storedIncome={storedIncome} />
+        ) : null}
+        <div className="dash-chart-card" style={{display: dashTab === "overview" ? undefined : "none"}}>
           <div className="dash-chart-header">
             <div>
               <p className="dash-chart-label">GASTO DO MÊS</p>
@@ -684,7 +776,7 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
             })}
           </div>
         </div>
-        <div className="dash-bottom-cards">
+        <div className="dash-bottom-cards" style={{display: dashTab === "overview" ? undefined : "none"}}>
           <div className="dash-bottom-card">
             <div className="dash-bottom-card-icon">
               {biggestExpense ? (categoryIcon[biggestExpense.category] || "📦") : "📦"}
@@ -705,7 +797,7 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
             </div>
           </div>
         </div>
-        <div className="dash-recent-section">
+        <div className="dash-recent-section" style={{display: dashTab === "overview" ? undefined : "none"}}>
           <div className="dash-recent-header">
             <span className="dash-recent-label">RECENTES</span>
             <button className="dash-recent-seeall" type="button" onClick={() => setScreen("transactions")}>Ver tudo →</button>
