@@ -18,9 +18,17 @@ function App() {
   const handleLogin = () => {
     if (email === "carol@lume.com" && password === "123456") {
       setScreen("dashboard");
-    } else {
-      alert("Email ou senha incorretos");
+      return;
     }
+    const stored = localStorage.getItem("lume_user");
+    if (stored) {
+      const user = JSON.parse(stored);
+      if (email === user.email && password === user.password) {
+        setScreen("dashboard");
+        return;
+      }
+    }
+    alert("Email ou senha incorretos");
   };
 
   const handleRegister = () => {
