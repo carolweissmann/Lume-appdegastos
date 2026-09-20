@@ -16,6 +16,10 @@ function App() {
   const [category, setCategory] = useState("");
   const [date, setDate] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState<string>(() => {
+    const n = new Date();
+    return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}`;
+  });
   const [income, setIncome] = useState("");
 const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string}[]>([
   { name: "", amount: "" }
@@ -98,23 +102,41 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
   };
 
   // ── Dados do dashboard ──────────────────
-const storedIncome = parseFloat(localStorage.getItem("lume_income") || "0");
-const storedFixed: { name: string; amount: string }[] = JSON.parse(localStorage.getItem("lume_fixed") || "[]");
-const storedExpenses: { id: number; amount: number; date: string; description: string; category: string }[] = JSON.parse(localStorage.getItem("lume_expenses") || "[]");
+  const storedIncome = parseFloat(localStorage.getItem("lume_income") || "0");
+  const storedFixed: { name: string; amount: string }[] = JSON.parse(localStorage.getItem("lume_fixed") || "[]");
+  const storedExpenses: { id: number; amount: number; date: string; description: string; category: string; createdAt?: string }[] = JSON.parse(localStorage.getItem("lume_expenses") || "[]");
 
-const now = new Date();
-const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-const monthExpenses = storedExpenses.filter((e) => e.date.startsWith(thisMonth));
+  const now = new Date();
+  // Build last 9 months for chart
+  const chartMonths = Array.from({ length: 9 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (8 - i), 1);
+    return {
+      key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
+      label: d.toLocaleString("pt-BR", { month: "short" }).replace(".", ""),
+    };
+  });
+  const totalFixed = storedFixed.reduce((acc, f) => acc + parseFloat(f.amount || "0"), 0);
+  // Per-month variable spend from expenses
+  const monthVariableSpend = (monthKey: string) =>
+    storedExpenses.filter((e) => e.date.startsWith(monthKey)).reduce((acc, e) => acc + e.amount, 0);
+  const chartMax = Math.max(...chartMonths.map((m) => monthVariableSpend(m.key) + totalFixed), 1);
 
-const totalFixed = storedFixed.reduce((acc, f) => acc + parseFloat(f.amount || "0"), 0);
-const totalVariable = monthExpenses.reduce((acc, e) => acc + e.amount, 0);
-const totalSpent = totalFixed + totalVariable;
-const remaining = storedIncome - totalSpent;
-const savedPct = storedIncome > 0 ? ((remaining / storedIncome) * 100).toFixed(1) : "0";
-
-const biggestExpense = monthExpenses.length > 0
-  ? monthExpenses.reduce((max, e) => e.amount > max.amount ? e : max, monthExpenses[0])
-  : null;
+  // Selected month data
+  const selectedExpenses = storedExpenses.filter((e) => e.date.startsWith(selectedMonth));
+  const selectedVariable = selectedExpenses.reduce((acc, e) => acc + e.amount, 0);
+  const selectedTotal = totalFixed + selectedVariable;
+  const remaining = storedIncome - selectedTotal;
+  const savedPct = storedIncome > 0 ? ((remaining / storedIncome) * 100).toFixed(1) : "0";
+  const biggestExpense = selectedExpenses.length > 0
+    ? selectedExpenses.reduce((max, e) => e.amount > max.amount ? e : max, selectedExpenses[0])
+    : null;
+  // Recent transactions (last 4, sorted by createdAt desc)
+  const recentExpenses = [...storedExpenses]
+    .sort((a, b) => new Date(b.createdAt || b.date).getTime() - new Date(a.createdAt || a.date).getTime())
+    .slice(0, 4);
+  const categoryIcon: Record<string, string> = {
+    food: "🍔", transport: "🚗", housing: "🏠", health: "💊", entertainment: "🎬", other: "📦"
+  };
   
   return (
     <div id="app">
@@ -616,7 +638,7 @@ const biggestExpense = monthExpenses.length > 0
           </div>
           <div className="dash-card">
             <p className="dash-card-label">GASTO</p>
-            <p className="dash-card-value">R$ {totalSpent.toFixed(0)}</p>
+            <p className="dash-card-value">R$ {selectedTotal.toFixed(0)}</p>
             <p className="dash-card-change negative">este mês</p>
           </div>
           <div className="dash-card">
@@ -627,61 +649,78 @@ const biggestExpense = monthExpenses.length > 0
         </div>
         <div className="dash-tabs">
           <button className="dash-tab active">Overview</button>
-          <button className="dash-tab">Transactions</button>
+          <button className="dash-tab" onClick={() => setScreen("transactions")}>Transactions</button>
           <button className="dash-tab">Categories</button>
         </div>
         <div className="dash-chart-card">
           <div className="dash-chart-header">
             <div>
               <p className="dash-chart-label">GASTO DO MÊS</p>
-              <p className="dash-chart-value">R$ {totalSpent.toFixed(2)}</p>
+              <p className="dash-chart-value">R$ {selectedTotal.toFixed(2)}</p>
             </div>
-            <div className="dash-chart-badge">↓ 8.1%</div>
+            <span className="dash-chart-month-tag">
+              {new Date(selectedMonth + "-01").toLocaleString("pt-BR", { month: "short", year: "2-digit" }).replace(".", "")}
+            </span>
           </div>
           <div className="dash-bars">
-            {[
-              { month: "Jan", h: 45 },
-              { month: "Feb", h: 55 },
-              { month: "Mar", h: 40 },
-              { month: "Apr", h: 60 },
-              { month: "May", h: 50 },
-              { month: "Jun", h: 48 },
-              { month: "Jul", h: 42 },
-              { month: "Aug", h: 65 },
-              { month: "Sep", h: 80, active: true },
-            ].map((b) => (
-              <div className="dash-bar-col" key={b.month}>
-                <div
-                  className={`dash-bar ${b.active ? "active" : ""}`}
-                  style={{ height: `${b.h}%` }}
-                ></div>
-                <p className={`dash-bar-label ${b.active ? "active" : ""}`}>
-                  {b.month}
-                </p>
-              </div>
-            ))}
+            {chartMonths.map((b) => {
+              const spend = monthVariableSpend(b.key) + totalFixed;
+              const heightPct = chartMax > 0 ? Math.max((spend / chartMax) * 100, 4) : 4;
+              const isActive = b.key === selectedMonth;
+              return (
+                <div className="dash-bar-col" key={b.key} onClick={() => setSelectedMonth(b.key)} style={{cursor:"pointer"}}>
+                  <div
+                    className={`dash-bar ${isActive ? "active" : ""}`}
+                    style={{ height: `${heightPct}%` }}
+                  />
+                  <p className={`dash-bar-label ${isActive ? "active" : ""}`}>
+                    {b.label}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
         <div className="dash-bottom-cards">
           <div className="dash-bottom-card">
-            <div className="dash-bottom-card-icon">🔴</div>
+            <div className="dash-bottom-card-icon">
+              {biggestExpense ? (categoryIcon[biggestExpense.category] || "📦") : "📦"}
+            </div>
             <div className="dash-bottom-card-info">
               <p className="dash-bottom-card-label">MAIOR GASTO</p>
-              <p className="dash-bottom-card-value">
-                {biggestExpense ? `${biggestExpense.description} — R$ ${biggestExpense.amount.toFixed(2)}` : "Nenhum ainda"}
-              </p>
+              <p className="dash-bottom-card-title">{biggestExpense ? biggestExpense.description : "Nenhum ainda"}</p>
+              {biggestExpense && <p className="dash-bottom-card-value dash-expense-red">R$ {biggestExpense.amount.toFixed(2)}</p>}
             </div>
           </div>
           <div className="dash-bottom-card">
-            <div className="dash-bottom-card-icon">🟢</div>
-            <div className="dash-bottom-card-info">
+            <div className="dash-bottom-card-info" style={{flex:1}}>
               <p className="dash-bottom-card-label">ORÇAMENTO RESTANTE</p>
-              <p className="dash-bottom-card-value">R$ {remaining.toFixed(2)} restando</p>
+              <p className={`dash-bottom-card-value dash-remaining-big ${remaining >= 0 ? "positive" : "negative"}`}>R$ {remaining.toFixed(2)}</p>
+              <div className="dash-progress-bar">
+                <div className="dash-progress-fill" style={{width: `${Math.min(Math.max((remaining/storedIncome)*100,0),100)}%`}} />
+              </div>
             </div>
-            <p className={"dash-bottom-card-pct " + (remaining >= 0 ? "positive" : "negative")}>
-              {savedPct}%
-            </p>
           </div>
+        </div>
+        <div className="dash-recent-section">
+          <div className="dash-recent-header">
+            <span className="dash-recent-label">RECENTES</span>
+            <button className="dash-recent-seeall" type="button" onClick={() => setScreen("transactions")}>Ver tudo →</button>
+          </div>
+          {recentExpenses.length === 0 ? (
+            <p className="dash-recent-empty">Nenhuma transação ainda</p>
+          ) : (
+            recentExpenses.map((e) => (
+              <div className="dash-recent-item" key={e.id}>
+                <div className="dash-recent-icon">{categoryIcon[e.category] || "📦"}</div>
+                <div className="dash-recent-info">
+                  <p className="dash-recent-name">{e.description}</p>
+                  <p className="dash-recent-date">{new Date(e.date + "T12:00:00").toLocaleDateString("pt-BR", {day:"2-digit",month:"short"})}</p>
+                </div>
+                <p className="dash-recent-amount">-R$ {e.amount.toFixed(2)}</p>
+              </div>
+            ))
+          )}
         </div>
         <div className="bottom-nav">
           <button className="nav-btn active" type="button">
