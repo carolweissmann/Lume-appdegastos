@@ -14,12 +14,10 @@ const CAT_META: Record<string, {label: string; icon: string; color: string}> = {
 function CategoriesView({
   expenses,
   totalFixed,
-  storedFixed,
   storedIncome,
 }: {
   expenses: {id:number;amount:number;date:string;description:string;category:string}[];
   totalFixed: number;
-  storedFixed: {name:string;amount:string}[];
   storedIncome: number;
 }) {
   // Group variable expenses by category
@@ -745,7 +743,11 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
           <button className={`dash-tab ${dashTab === "categories" ? "active" : ""}`} onClick={() => setDashTab("categories")}>Categories</button>
         </div>
         {dashTab === "categories" ? (
-          <CategoriesView expenses={storedExpenses} totalFixed={totalFixed} storedIncome={storedIncome} />
+          <CategoriesView
+            expenses={storedExpenses}
+            totalFixed={totalFixed}
+            storedIncome={storedIncome}
+          />
         ) : null}
         <div className="dash-chart-card" style={{display: dashTab === "overview" ? undefined : "none"}}>
           <div className="dash-chart-header">
@@ -862,7 +864,7 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
               />
             </svg>
           </button>
-          <button className="nav-btn" type="button">
+          <button className="nav-btn" type="button" onClick={() => setDashTab("categories")}>
             <svg
               width="20"
               height="20"
@@ -1082,7 +1084,7 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
           </button>
-          <button className="nav-btn" type="button">
+          <button className="nav-btn" type="button" onClick={() => { setScreen("dashboard"); setDashTab("categories"); }}>
             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" />
