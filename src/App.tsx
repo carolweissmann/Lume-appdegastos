@@ -87,6 +87,25 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
     setScreen("dashboard");
   };
 
+  // ── Dados do dashboard ──────────────────
+const storedIncome = parseFloat(localStorage.getItem("lume_income") || "0");
+const storedFixed: { name: string; amount: string }[] = JSON.parse(localStorage.getItem("lume_fixed") || "[]");
+const storedExpenses: { id: number; amount: number; date: string; description: string; category: string }[] = JSON.parse(localStorage.getItem("lume_expenses") || "[]");
+
+const now = new Date();
+const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+const monthExpenses = storedExpenses.filter((e) => e.date.startsWith(thisMonth));
+
+const totalFixed = storedFixed.reduce((acc, f) => acc + parseFloat(f.amount || "0"), 0);
+const totalVariable = monthExpenses.reduce((acc, e) => acc + e.amount, 0);
+const totalSpent = totalFixed + totalVariable;
+const remaining = storedIncome - totalSpent;
+const savedPct = storedIncome > 0 ? ((remaining / storedIncome) * 100).toFixed(1) : "0";
+
+const biggestExpense = monthExpenses.length > 0
+  ? monthExpenses.reduce((max, e) => e.amount > max.amount ? e : max, monthExpenses[0])
+  : null;
+  
   return (
     <div id="app">
       {/* ── Splash ── */}
@@ -573,28 +592,27 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
           </div>
         </div>
         <div className="dash-net-worth-card">
-          <p className="dash-nw-label">NET WORTH</p>
+          <p className="dash-nw-label">SALDO DISPONÍVEL</p>
           <div className="dash-nw-value">
-            <span className="dash-nw-main">$24,819</span>
-            <span className="dash-nw-cents">.32</span>
+            <span className="dash-nw-main">R$ {remaining.toFixed(2)}</span>
           </div>
-          <p className="dash-nw-sub">↑ $582.40 this month</p>
+          <p className="dash-nw-sub">Renda: R$ {storedIncome.toFixed(2)}</p>
         </div>
         <div className="dash-cards-row">
           <div className="dash-card">
-            <p className="dash-card-label">BALANCE</p>
-            <p className="dash-card-value">$24,819</p>
-            <p className="dash-card-change positive">+2.4%</p>
+            <p className="dash-card-label">RENDA</p>
+            <p className="dash-card-value">R$ {storedIncome.toFixed(0)}</p>
+            <p className="dash-card-change positive">mensal</p>
           </div>
           <div className="dash-card">
-            <p className="dash-card-label">SPENT</p>
-            <p className="dash-card-value">$3,820</p>
-            <p className="dash-card-change negative">-8.1%</p>
+            <p className="dash-card-label">GASTO</p>
+            <p className="dash-card-value">R$ {totalSpent.toFixed(0)}</p>
+            <p className="dash-card-change negative">este mês</p>
           </div>
           <div className="dash-card">
-            <p className="dash-card-label">SAVED</p>
-            <p className="dash-card-value">34.1%</p>
-            <p className="dash-card-change goal">Goal: 30%</p>
+            <p className="dash-card-label">SOBROU</p>
+            <p className="dash-card-value">{savedPct}%</p>
+            <p className="dash-card-change goal">da renda</p>
           </div>
         </div>
         <div className="dash-tabs">
@@ -605,8 +623,8 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
         <div className="dash-chart-card">
           <div className="dash-chart-header">
             <div>
-              <p className="dash-chart-label">MONTHLY SPEND</p>
-              <p className="dash-chart-value">$3,820</p>
+              <p className="dash-chart-label">GASTO DO MÊS</p>
+              <p className="dash-chart-value">R$ {totalSpent.toFixed(2)}</p>
             </div>
             <div className="dash-chart-badge">↓ 8.1%</div>
           </div>
@@ -638,18 +656,21 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
           <div className="dash-bottom-card">
             <div className="dash-bottom-card-icon">🔴</div>
             <div className="dash-bottom-card-info">
-              <p className="dash-bottom-card-label">BIGGEST EXPENSE</p>
-              <p className="dash-bottom-card-value">Rent — $1,200</p>
+              <p className="dash-bottom-card-label">MAIOR GASTO</p>
+              <p className="dash-bottom-card-value">
+                {biggestExpense ? `${biggestExpense.description} — R$ ${biggestExpense.amount.toFixed(2)}` : "Nenhum ainda"}
+              </p>
             </div>
-            <p className="dash-bottom-card-pct">31.4%</p>
           </div>
           <div className="dash-bottom-card">
             <div className="dash-bottom-card-icon">🟢</div>
             <div className="dash-bottom-card-info">
-              <p className="dash-bottom-card-label">REMAINING BUDGET</p>
-              <p className="dash-bottom-card-value">$680 left</p>
+              <p className="dash-bottom-card-label">ORÇAMENTO RESTANTE</p>
+              <p className="dash-bottom-card-value">R$ {remaining.toFixed(2)} restando</p>
             </div>
-            <p className="dash-bottom-card-pct positive">17.8%</p>
+            <p className={"dash-bottom-card-pct " + (remaining >= 0 ? "positive" : "negative")}>
+              {savedPct}%
+            </p>
           </div>
         </div>
         <div className="bottom-nav">
