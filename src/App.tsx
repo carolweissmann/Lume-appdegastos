@@ -15,6 +15,7 @@ function App() {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [date, setDate] = useState("");
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [income, setIncome] = useState("");
 const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string}[]>([
   { name: "", amount: "" }
@@ -72,19 +73,28 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
       return;
     }
     const expenses = JSON.parse(localStorage.getItem("lume_expenses") || "[]");
-    expenses.push({
-      id: Date.now(),
-      amount: parseFloat(amount),
-      description,
-      category,
-      date,
-    });
+    if (editingId !== null) {
+      const idx = expenses.findIndex((e: { id: number }) => e.id === editingId);
+      if (idx !== -1) {
+        expenses[idx] = { ...expenses[idx], amount: parseFloat(amount), description, category, date };
+      }
+      setEditingId(null);
+    } else {
+      expenses.push({
+        id: Date.now(),
+        amount: parseFloat(amount),
+        description,
+        category,
+        date,
+        createdAt: new Date().toISOString(),
+      });
+    }
     localStorage.setItem("lume_expenses", JSON.stringify(expenses));
     setAmount("");
     setDescription("");
     setCategory("");
     setDate("");
-    setScreen("dashboard");
+    setScreen("transactions");
   };
 
   // ── Dados do dashboard ──────────────────
@@ -859,28 +869,55 @@ const biggestExpense = monthExpenses.length > 0
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
             </svg>
           </button>
-          <h1 className="add-title">Transactions</h1>
+          <h1 className="add-title">Histórico</h1>
           <div style={{ width: 20 }} />
         </div>
 
         <div className="tx-list">
           {(() => {
-            const expenses = JSON.parse(localStorage.getItem("lume_expenses") || "[]");
+            const expenses: { id: number; description: string; category: string; amount: number; date: string; createdAt?: string }[] = JSON.parse(localStorage.getItem("lume_expenses") || "[]");
             if (expenses.length === 0) {
-              return <p className="tx-empty">No transactions yet. Add your first expense!</p>;
+              return <p className="tx-empty">Nenhuma transação ainda. Adicione seu primeiro gasto!</p>;
             }
-            return [...expenses].reverse().map((e: { id: number; description: string; category: string; amount: number; date: string }) => (
-              <div className="tx-item" key={e.id}>
-                <div className="tx-icon">
-                  {e.category === "food" ? "🍔" : e.category === "transport" ? "🚗" : e.category === "housing" ? "🏠" : e.category === "health" ? "💊" : e.category === "entertainment" ? "🎬" : "📦"}
+            const categoryIcon: Record<string, string> = {
+              food: "🍔", transport: "🚗", housing: "🏠", health: "💊", entertainment: "🎬", other: "📦"
+            };
+            const categoryColor: Record<string, string> = {
+              food: "#E85002", transport: "#3B82F6", housing: "#8B5CF6", health: "#10B981", entertainment: "#F59E0B", other: "#6B7280"
+            };
+            const handleDelete = (id: number) => {
+              const updated = expenses.filter((e) => e.id !== id);
+              localStorage.setItem("lume_expenses", JSON.stringify(updated));
+              window.location.reload();
+            };
+            const handleEdit = (e: typeof expenses[0]) => {
+              setEditingId(e.id);
+              setAmount(String(e.amount));
+              setDescription(e.description);
+              setCategory(e.category);
+              setDate(e.date);
+              setScreen("add");
+            };
+            return [...expenses].reverse().map((e) => {
+              const timeStr = e.createdAt
+                ? new Date(e.createdAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+                : "";
+              return (
+                <div className="tx-item" key={e.id}>
+                  <div className="tx-icon-box" style={{ background: categoryColor[e.category] || "#6B7280" }}>
+                    {categoryIcon[e.category] || "📦"}
+                  </div>
+                  <div className="tx-info" onClick={() => handleEdit(e)}>
+                    <p className="tx-desc">{e.description}</p>
+                    <p className="tx-date">{e.category} · {e.date}{timeStr ? " · " + timeStr : ""}</p>
+                  </div>
+                  <div className="tx-right">
+                    <p className="tx-amount">R$ {e.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                    <button className="tx-delete" onClick={() => handleDelete(e.id)}>✕</button>
+                  </div>
                 </div>
-                <div className="tx-info">
-                  <p className="tx-desc">{e.description}</p>
-                  <p className="tx-date">{e.date} · {e.category}</p>
-                </div>
-                <p className="tx-amount">-${e.amount.toFixed(2)}</p>
-              </div>
-            ));
+              );
+            });
           })()}
         </div>
       </div>
