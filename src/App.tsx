@@ -745,7 +745,7 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
           <button className={`dash-tab ${dashTab === "categories" ? "active" : ""}`} onClick={() => setDashTab("categories")}>Categories</button>
         </div>
         {dashTab === "categories" ? (
-          <CategoriesView expenses={storedExpenses} totalFixed={totalFixed} storedFixed={storedFixed} storedIncome={storedIncome} />
+          <CategoriesView expenses={storedExpenses} totalFixed={totalFixed} storedIncome={storedIncome} />
         ) : null}
         <div className="dash-chart-card" style={{display: dashTab === "overview" ? undefined : "none"}}>
           <div className="dash-chart-header">
