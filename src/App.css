@@ -175,6 +175,14 @@
   overflow-y: auto;
 }
 
+#screen-register {
+  background: var(--white);
+  display: flex;
+  flex-direction: column;
+  padding: 60px 28px 40px;
+  overflow-y: auto;
+}
+
 .login-header {
   margin-bottom: 28px;
 }
