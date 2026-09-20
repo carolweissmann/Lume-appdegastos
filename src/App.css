@@ -882,6 +882,22 @@
   background: var(--black);
   display: flex;
   flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+#screen-transactions .tx-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 110px;
+}
+
+#screen-transactions .bottom-nav {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: 0 20px 24px;
 }
 
 .tx-list {
@@ -1131,4 +1147,45 @@
 .tx-delete:hover {
   background: #ff4444;
   color: #fff;
+}
+
+/* ── TX CARD ───────────────────────────── */
+.tx-card {
+  margin: 16px;
+  background: #161616;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid #222;
+}
+
+.tx-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px 12px;
+}
+
+.tx-card-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #555;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.tx-card-badge {
+  background: #2a1a2a;
+  color: #E85002;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.tx-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  border-top: 1px solid #1e1e1e;
 }
