@@ -16,6 +16,9 @@ function App() {
   const [category, setCategory] = useState("");
   const [date, setDate] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [expenses, setExpenses] = useState<{id:number;amount:number;date:string;description:string;category:string;createdAt?:string}[]>(
+    () => JSON.parse(localStorage.getItem("lume_expenses") || "[]")
+  );
   const [selectedMonth, setSelectedMonth] = useState<string>(() => {
     const n = new Date();
     return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}`;
@@ -104,7 +107,7 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
   // ── Dados do dashboard ──────────────────
   const storedIncome = parseFloat(localStorage.getItem("lume_income") || "0");
   const storedFixed: { name: string; amount: string }[] = JSON.parse(localStorage.getItem("lume_fixed") || "[]");
-  const storedExpenses: { id: number; amount: number; date: string; description: string; category: string; createdAt?: string }[] = JSON.parse(localStorage.getItem("lume_expenses") || "[]");
+  const storedExpenses = expenses;
 
   const now = new Date();
   // Build last 9 months for chart
@@ -915,7 +918,6 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
 
         <div className="tx-card">
           {(() => {
-            const expenses: { id: number; description: string; category: string; amount: number; date: string; createdAt?: string }[] = JSON.parse(localStorage.getItem("lume_expenses") || "[]");
             const categoryIcon: Record<string, string> = {
               food: "🍔", transport: "🚗", housing: "🏠", health: "💊", entertainment: "🎬", other: "📦"
             };
@@ -925,7 +927,7 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
             const handleDelete = (id: number) => {
               const updated = expenses.filter((e) => e.id !== id);
               localStorage.setItem("lume_expenses", JSON.stringify(updated));
-              window.location.reload();
+              setExpenses(updated);
             };
             const handleEdit = (e: typeof expenses[0]) => {
               setEditingId(e.id);
