@@ -117,6 +117,7 @@ function App() {
   const [currency] = useState<string>(() => localStorage.getItem("lume_currency") || "R$");
   const [budgetAlertPct] = useState<number>(() => Number(localStorage.getItem("lume_budget_pct") || "80"));
   const [budgetAlertDismissed, setBudgetAlertDismissed] = useState(false);
+  const [txType, setTxType] = useState<"expense" | "income">("expense");
   const [monthlyBudget] = useState<string>(() => localStorage.getItem("lume_monthly_budget") || "");
   const [startDay] = useState<number>(() => Number(localStorage.getItem("lume_start_day") || "1"));
   const [income, setIncome] = useState("");
