@@ -110,6 +110,11 @@ function App() {
     const n = new Date();
     return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}`;
   });
+  const [txFilterMonth, setTxFilterMonth] = useState<string>("");
+  const [txFilterCat, setTxFilterCat] = useState<string>("");
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [editProfileName, setEditProfileName] = useState("");
+  const [editProfileEmail, setEditProfileEmail] = useState("");
   const [income, setIncome] = useState("");
 const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string}[]>([
   { name: "", amount: "" }
@@ -184,6 +189,7 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
       });
     }
     localStorage.setItem("lume_expenses", JSON.stringify(expenses));
+    setExpenses(expenses);
     setAmount("");
     setDescription("");
     setCategory("");
@@ -702,7 +708,13 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
             </div>
             <div>
               <p className="dash-app-name">Lume</p>
-              <p className="dash-greeting">bom dia, Carol</p>
+              <p className="dash-greeting">{(() => {
+                const h = new Date().getHours();
+                const gr = h < 12 ? "bom dia" : h < 18 ? "boa tarde" : "boa noite";
+                const u = JSON.parse(localStorage.getItem("lume_user") || "{}");
+                const firstName = (u.name || "").split(" ")[0];
+                return firstName ? `${gr}, ${firstName}` : gr;
+              })()}</p>
             </div>
           </div>
           <div className="dash-header-right">
@@ -820,7 +832,7 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
           )}
         </div>
         <div className="bottom-nav">
-          <button className="nav-btn active" type="button" onClick={() => setDashTab("overview")}>
+          <button className={`nav-btn${dashTab === "overview" ? " active" : ""}`} type="button" onClick={() => setDashTab("overview")}>
             <svg
               width="20"
               height="20"
@@ -864,7 +876,7 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
               />
             </svg>
           </button>
-          <button className="nav-btn" type="button" onClick={() => setDashTab("categories")}>
+          <button className={`nav-btn${dashTab === "categories" ? " active" : ""}`} type="button" onClick={() => setDashTab("categories")}>
             <svg
               width="20"
               height="20"
@@ -936,16 +948,16 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
               />
             </svg>
           </button>
-          <h1 className="add-title">New Expense</h1>
+          <h1 className="add-title">Novo Gasto</h1>
           <div style={{ width: 20 }} />
         </div>
 
         <div className="add-amount-wrap">
-          <span className="add-currency">$</span>
+          <span className="add-currency">R$</span>
           <input
             className="add-amount-input"
             type="number"
-            placeholder="0.00"
+            placeholder="0,00"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
           />
@@ -953,33 +965,41 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
 
         <div className="add-form">
           <div className="add-field">
-            <label className="add-label">Description</label>
+            <label className="add-label">Descrição</label>
             <input
               className="add-input"
               type="text"
-              placeholder="What did you spend on?"
+              placeholder="Em que você gastou?"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
           <div className="add-field">
-            <label className="add-label">Category</label>
-            <select
-              className="add-input add-select"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-            >
-              <option value="">Select category</option>
-              <option value="food">🍔 Food</option>
-              <option value="transport">🚗 Transport</option>
-              <option value="housing">🏠 Housing</option>
-              <option value="health">💊 Health</option>
-              <option value="entertainment">🎬 Entertainment</option>
-              <option value="other">📦 Other</option>
-            </select>
+            <label className="add-label">Categoria</label>
+            <div className="cat-grid">
+              {[
+                { key: "housing",       icon: "🏠", label: "Moradia",     color: "#7C3AED" },
+                { key: "food",          icon: "🍔", label: "Alimentação", color: "#EC4899" },
+                { key: "transport",     icon: "🚗", label: "Transporte",  color: "#F97316" },
+                { key: "entertainment", icon: "🎬", label: "Lazer",       color: "#8B5CF6" },
+                { key: "health",        icon: "💊", label: "Saúde",       color: "#EF4444" },
+                { key: "other",         icon: "📦", label: "Outros",      color: "#F59E0B" },
+              ].map((c) => (
+                <button
+                  key={c.key}
+                  type="button"
+                  className={`cat-grid-btn${category === c.key ? " selected" : ""}`}
+                  style={category === c.key ? { borderColor: c.color, background: c.color + "22" } : {}}
+                  onClick={() => setCategory(c.key)}
+                >
+                  <span className="cat-grid-icon">{c.icon}</span>
+                  <span className="cat-grid-label">{c.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
           <div className="add-field">
-            <label className="add-label">Date</label>
+            <label className="add-label">Data</label>
             <input
               className="add-input"
               type="date"
@@ -991,7 +1011,7 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
         </div>
 
         <button className="add-btn" type="button" onClick={handleSaveExpense}>
-          Save Expense
+          Salvar Gasto
         </button>
       </div>
             {/* ── Transactions ── */}
@@ -1010,6 +1030,40 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
           <div style={{ width: 20 }} />
         </div>
 
+        {/* Filters */}
+        {(() => {
+          const txMonths = Array.from(new Set(expenses.map((e) => e.date.slice(0,7)))).sort().reverse();
+          return (
+            <div className="tx-filters">
+              <select
+                className="tx-filter-select"
+                value={txFilterMonth}
+                onChange={(e) => setTxFilterMonth(e.target.value)}
+              >
+                <option value="">Todos os meses</option>
+                {txMonths.map((m) => {
+                  const [y,mo] = m.split("-");
+                  const label = new Date(Number(y), Number(mo)-1, 1).toLocaleString("pt-BR",{month:"long",year:"numeric"});
+                  return <option key={m} value={m}>{label}</option>;
+                })}
+              </select>
+              <select
+                className="tx-filter-select"
+                value={txFilterCat}
+                onChange={(e) => setTxFilterCat(e.target.value)}
+              >
+                <option value="">Todas as categorias</option>
+                <option value="housing">🏠 Moradia</option>
+                <option value="food">🍔 Alimentação</option>
+                <option value="transport">🚗 Transporte</option>
+                <option value="entertainment">🎬 Lazer</option>
+                <option value="health">💊 Saúde</option>
+                <option value="other">📦 Outros</option>
+              </select>
+            </div>
+          );
+        })()}
+
         <div className="tx-card">
           {(() => {
             const categoryIcon: Record<string, string> = {
@@ -1017,6 +1071,10 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
             };
             const categoryColor: Record<string, string> = {
               food: "#E85002", transport: "#3B82F6", housing: "#8B5CF6", health: "#10B981", entertainment: "#F59E0B", other: "#6B7280"
+            };
+            const catLabels: Record<string, string> = {
+              food: "Alimentação", transport: "Transporte", housing: "Moradia",
+              health: "Saúde", entertainment: "Lazer", other: "Outros"
             };
             const handleDelete = (id: number) => {
               const updated = expenses.filter((e) => e.id !== id);
@@ -1031,16 +1089,24 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
               setDate(e.date);
               setScreen("add");
             };
+            const filtered = [...expenses]
+              .filter((e) => !txFilterMonth || e.date.startsWith(txFilterMonth))
+              .filter((e) => !txFilterCat || e.category === txFilterCat)
+              .reverse();
             return (
               <>
                 <div className="tx-card-header">
-                  <span className="tx-card-label">TODAS AS TRANSAÇÕES</span>
-                  <span className="tx-card-badge">{expenses.length} itens</span>
+                  <span className="tx-card-label">TRANSAÇÕES</span>
+                  <span className="tx-card-badge">{filtered.length} itens</span>
                 </div>
-                {expenses.length === 0 ? (
-                  <p className="tx-empty">Nenhuma transação ainda. Adicione seu primeiro gasto!</p>
+                {filtered.length === 0 ? (
+                  <div className="tx-empty-state">
+                    <div className="tx-empty-icon">🔍</div>
+                    <p className="tx-empty">Nenhuma transação encontrada.</p>
+                    <p className="tx-empty-sub">Tente mudar os filtros ou adicione um novo gasto.</p>
+                  </div>
                 ) : (
-                  [...expenses].reverse().map((e) => {
+                  filtered.map((e) => {
                     const timeStr = e.createdAt
                       ? new Date(e.createdAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
                       : "";
@@ -1051,7 +1117,7 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
                         </div>
                         <div className="tx-info" onClick={() => handleEdit(e)}>
                           <p className="tx-desc">{e.description}</p>
-                          <p className="tx-date">{e.category} · {e.date}{timeStr ? " · " + timeStr : ""}</p>
+                          <p className="tx-date">{catLabels[e.category] || e.category} · {e.date}{timeStr ? " · " + timeStr : ""}</p>
                         </div>
                         <div className="tx-right">
                           <p className="tx-amount">R$ {e.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
@@ -1221,7 +1287,7 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
                 })()}
               </div>
             </div>
-            <button className="settings-edit-btn" type="button">
+            <button className="settings-edit-btn" type="button" onClick={() => setShowEditProfile(true)}>
               <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
               </svg>
@@ -1231,7 +1297,7 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
           {/* CONTA */}
           <div className="settings-section-label">CONTA</div>
           <div className="settings-group">
-            <button className="settings-row" type="button">
+            <button className="settings-row" type="button" onClick={() => setShowEditProfile(true)}>
               <div className="settings-row-icon" style={{background:"#1a1a2e"}}>
                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#818CF8" strokeWidth="1.8">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
@@ -1383,6 +1449,41 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
 
           <div style={{height: "40px"}} />
         </div>
+
+        {/* Edit Profile Modal */}
+        {showEditProfile && (
+          <div className="modal-overlay" onClick={() => setShowEditProfile(false)}>
+            <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-title">Editar Perfil</div>
+              <label className="add-label" style={{marginTop:8}}>Nome</label>
+              <input
+                className="add-input"
+                type="text"
+                placeholder="Seu nome"
+                defaultValue={(() => { const u = JSON.parse(localStorage.getItem("lume_user") || "{}"); return u.name || ""; })()}
+                onChange={(e) => setEditProfileName(e.target.value)}
+              />
+              <label className="add-label" style={{marginTop:12}}>E-mail</label>
+              <input
+                className="add-input"
+                type="email"
+                placeholder="seu@email.com"
+                defaultValue={(() => { const u = JSON.parse(localStorage.getItem("lume_user") || "{}"); return u.email || ""; })()}
+                onChange={(e) => setEditProfileEmail(e.target.value)}
+              />
+              <div className="modal-actions">
+                <button className="modal-cancel" type="button" onClick={() => setShowEditProfile(false)}>Cancelar</button>
+                <button className="modal-save" type="button" onClick={() => {
+                  const u = JSON.parse(localStorage.getItem("lume_user") || "{}");
+                  if (editProfileName) u.name = editProfileName;
+                  if (editProfileEmail) u.email = editProfileEmail;
+                  localStorage.setItem("lume_user", JSON.stringify(u));
+                  setShowEditProfile(false);
+                }}>Salvar</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
     </div>
