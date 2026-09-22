@@ -114,25 +114,11 @@ function App() {
   });
   const [txFilterMonth, setTxFilterMonth] = useState<string>("");
   const [txFilterCat, setTxFilterCat] = useState<string>("");
-  const [showEditProfile, setShowEditProfile] = useState(false);
-  const [editProfileName, setEditProfileName] = useState("");
-  const [editProfileEmail, setEditProfileEmail] = useState("");
-  const [currency, setCurrency] = useState<string>(() => localStorage.getItem("lume_currency") || "R$");
-  const [showCurrencyModal, setShowCurrencyModal] = useState(false);
-  const [showBudgetAlert, setShowBudgetAlert] = useState(false);
-  const [budgetAlertPct, setBudgetAlertPct] = useState<number>(() => Number(localStorage.getItem("lume_budget_pct") || "80"));
-  const [showBudgetModal, setShowBudgetModal] = useState(false);
+  const [currency] = useState<string>(() => localStorage.getItem("lume_currency") || "R$");
+  const [budgetAlertPct] = useState<number>(() => Number(localStorage.getItem("lume_budget_pct") || "80"));
   const [budgetAlertDismissed, setBudgetAlertDismissed] = useState(false);
-  const [txType, setTxType] = useState<"expense" | "income">("expense");
-  const [notifPush, setNotifPush] = useState(() => localStorage.getItem("lume_notif_push") !== "false");
-  const [notifMarketing, setNotifMarketing] = useState(() => localStorage.getItem("lume_notif_marketing") === "true");
-  const [notifEmail, setNotifEmail] = useState(() => localStorage.getItem("lume_notif_email") !== "false");
-  const [biometric, setBiometric] = useState(() => localStorage.getItem("lume_biometric") === "true");
-  const [monthlyBudget, setMonthlyBudget] = useState<string>(() => localStorage.getItem("lume_monthly_budget") || "");
-  const [savingsGoal, setSavingsGoal] = useState<string>(() => localStorage.getItem("lume_savings_goal") || "20");
-  const [startDay, setStartDay] = useState<number>(() => Number(localStorage.getItem("lume_start_day") || "1"));
-  const [exportFormat, setExportFormat] = useState<"csv" | "pdf">("csv");
-  const [exportPeriod, setExportPeriod] = useState<string>("this_month");
+  const [monthlyBudget] = useState<string>(() => localStorage.getItem("lume_monthly_budget") || "");
+  const [startDay] = useState<number>(() => Number(localStorage.getItem("lume_start_day") || "1"));
   const [income, setIncome] = useState("");
 const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string}[]>([
   { name: "", amount: "" }
@@ -777,6 +763,7 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
             expenses={storedExpenses}
             totalFixed={totalFixed}
             storedIncome={storedIncome}
+            currency={currency}
           />
         ) : null}
         <div className="dash-chart-card" style={{display: dashTab === "overview" ? undefined : "none"}}>
@@ -1511,16 +1498,9 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
           <div style={{height: "40px"}} />
         </div>
 
-        {/* Edit Profile Modal */}
-              <button className="modal-cancel" style={{marginTop:16}} type="button" onClick={() => setShowCurrencyModal(false)}>Fechar</button>
-            </div>
-          </div>
-        )}
-              </div>
-              <button className="modal-cancel" style={{marginTop:16}} type="button" onClick={() => setShowBudgetModal(false)}>Fechar</button>
-            </div>
-          </div>
-        )}
-$1
+      </div>
+    </div>
+  );
+}
 
 export default App;
