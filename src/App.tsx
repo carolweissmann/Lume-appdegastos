@@ -15,10 +15,12 @@ function CategoriesView({
   expenses,
   totalFixed,
   storedIncome,
+  currency,
 }: {
   expenses: {id:number;amount:number;date:string;description:string;category:string}[];
   totalFixed: number;
   storedIncome: number;
+  currency: string;
 }) {
   // Group variable expenses by category
   const catTotals: Record<string, number> = {};
@@ -62,7 +64,7 @@ function CategoriesView({
             <div className="cat-row-top">
               <span className="cat-dot" style={{ background: meta.color }} />
               <span className="cat-name">{meta.icon} {meta.label}</span>
-              <span className="cat-amount">R$ {val.toFixed(2)}</span>
+              <span className="cat-amount">{currency} {val.toFixed(2)}</span>
               <span className="cat-pct">{pct}%</span>
             </div>
             <div className="cat-bar-track">
@@ -76,11 +78,11 @@ function CategoriesView({
       <div className="cat-footer">
         <div>
           <p className="cat-footer-label">TOTAL</p>
-          <p className="cat-footer-total">R$ {grandTotal.toFixed(2)}</p>
+          <p className="cat-footer-total">{currency} {grandTotal.toFixed(2)}</p>
         </div>
         <div className="cat-budget-pill">
           <p className="cat-budget-label">ORÇAMENTO</p>
-          <p className="cat-budget-val">R$ {storedIncome.toFixed(2)}</p>
+          <p className="cat-budget-val">{currency} {storedIncome.toFixed(2)}</p>
         </div>
       </div>
     </div>
@@ -115,6 +117,12 @@ function App() {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [editProfileName, setEditProfileName] = useState("");
   const [editProfileEmail, setEditProfileEmail] = useState("");
+  const [currency, setCurrency] = useState<string>(() => localStorage.getItem("lume_currency") || "R$");
+  const [showCurrencyModal, setShowCurrencyModal] = useState(false);
+  const [showBudgetAlert, setShowBudgetAlert] = useState(false);
+  const [budgetAlertPct, setBudgetAlertPct] = useState<number>(() => Number(localStorage.getItem("lume_budget_pct") || "80"));
+  const [showBudgetModal, setShowBudgetModal] = useState(false);
+  const [budgetAlertDismissed, setBudgetAlertDismissed] = useState(false);
   const [income, setIncome] = useState("");
 const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string}[]>([
   { name: "", amount: "" }
@@ -728,14 +736,14 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
         <div className="dash-net-worth-card">
           <p className="dash-nw-label">SALDO DISPONÍVEL</p>
           <div className="dash-nw-value">
-            <span className="dash-nw-main">R$ {remaining.toFixed(2)}</span>
+            <span className="dash-nw-main">{currency} {remaining.toFixed(2)}</span>
           </div>
-          <p className="dash-nw-sub">Renda: R$ {storedIncome.toFixed(2)}</p>
+          <p className="dash-nw-sub">Renda: {currency} {storedIncome.toFixed(2)}</p>
         </div>
         <div className="dash-cards-row">
           <div className="dash-card">
             <p className="dash-card-label">RENDA</p>
-            <p className="dash-card-value">R$ {storedIncome.toFixed(0)}</p>
+            <p className="dash-card-value">{currency} {storedIncome.toFixed(0)}</p>
             <p className="dash-card-change positive">mensal</p>
           </div>
           <div className="dash-card">
@@ -798,13 +806,13 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
             <div className="dash-bottom-card-info">
               <p className="dash-bottom-card-label">MAIOR GASTO</p>
               <p className="dash-bottom-card-title">{biggestExpense ? biggestExpense.description : "Nenhum ainda"}</p>
-              {biggestExpense && <p className="dash-bottom-card-value dash-expense-red">R$ {biggestExpense.amount.toFixed(2)}</p>}
+              {biggestExpense && <p className="dash-bottom-card-value dash-expense-red">{currency} {biggestExpense.amount.toFixed(2)}</p>}
             </div>
           </div>
           <div className="dash-bottom-card">
             <div className="dash-bottom-card-info" style={{flex:1}}>
               <p className="dash-bottom-card-label">ORÇAMENTO RESTANTE</p>
-              <p className={`dash-bottom-card-value dash-remaining-big ${remaining >= 0 ? "positive" : "negative"}`}>R$ {remaining.toFixed(2)}</p>
+              <p className={`dash-bottom-card-value dash-remaining-big ${remaining >= 0 ? "positive" : "negative"}`}>{currency} {remaining.toFixed(2)}</p>
               <div className="dash-progress-bar">
                 <div className="dash-progress-fill" style={{width: `${Math.min(Math.max((remaining/storedIncome)*100,0),100)}%`}} />
               </div>
@@ -831,6 +839,22 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
             ))
           )}
         </div>
+        {/* Budget alert toast */}
+        {(() => {
+          const pct = storedIncome > 0 ? (selectedTotal / storedIncome) * 100 : 0;
+          if (pct >= budgetAlertPct && !budgetAlertDismissed && storedIncome > 0) {
+            return (
+              <div className="budget-toast">
+                <span className="budget-toast-icon">⚠️</span>
+                <div className="budget-toast-text">
+                  <strong>Atenção!</strong> Você já usou {pct.toFixed(0)}% do orçamento este mês.
+                </div>
+                <button className="budget-toast-close" onClick={() => setBudgetAlertDismissed(true)}>✕</button>
+              </div>
+            );
+          }
+          return null;
+        })()}
         <div className="bottom-nav">
           <button className={`nav-btn${dashTab === "overview" ? " active" : ""}`} type="button" onClick={() => setDashTab("overview")}>
             <svg
@@ -953,7 +977,7 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
         </div>
 
         <div className="add-amount-wrap">
-          <span className="add-currency">R$</span>
+          <span className="add-currency">{currency}</span>
           <input
             className="add-amount-input"
             type="number"
@@ -1120,7 +1144,7 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
                           <p className="tx-date">{catLabels[e.category] || e.category} · {e.date}{timeStr ? " · " + timeStr : ""}</p>
                         </div>
                         <div className="tx-right">
-                          <p className="tx-amount">R$ {e.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                          <p className="tx-amount">{currency} {e.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
                           <button className="tx-delete" onClick={() => handleDelete(e.id)}>✕</button>
                         </div>
                       </div>
@@ -1309,13 +1333,14 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
               </svg>
             </button>
             <div className="settings-divider" />
-            <button className="settings-row" type="button">
+            <button className="settings-row" type="button" onClick={() => setShowBudgetModal(true)}>
               <div className="settings-row-icon" style={{background:"#1a2e1a"}}>
                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#34D399" strokeWidth="1.8">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
                 </svg>
               </div>
               <span className="settings-row-label">Notificações</span>
+              <span className="settings-row-value">{budgetAlertPct}%</span>
               <svg className="settings-row-arrow" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
               </svg>
@@ -1337,14 +1362,14 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
           {/* PREFERÊNCIAS */}
           <div className="settings-section-label">PREFERÊNCIAS</div>
           <div className="settings-group">
-            <button className="settings-row" type="button">
+            <button className="settings-row" type="button" onClick={() => setShowCurrencyModal(true)}>
               <div className="settings-row-icon" style={{background:"#1a2e2a"}}>
                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#2DD4BF" strokeWidth="1.8">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <span className="settings-row-label">Moeda</span>
-              <span className="settings-row-value">R$</span>
+              <span className="settings-row-value">{currency}</span>
               <svg className="settings-row-arrow" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
               </svg>
@@ -1451,6 +1476,67 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
         </div>
 
         {/* Edit Profile Modal */}
+        {/* Currency Modal */}
+        {showCurrencyModal && (
+          <div className="modal-overlay" onClick={() => setShowCurrencyModal(false)}>
+            <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-title">Selecionar Moeda</div>
+              {[
+                { symbol: "R$", label: "Real Brasileiro (R$)" },
+                { symbol: "$",  label: "Dólar Americano ($)" },
+                { symbol: "€",  label: "Euro (€)" },
+                { symbol: "£",  label: "Libra Esterlina (£)" },
+              ].map((opt) => (
+                <button
+                  key={opt.symbol}
+                  className={`currency-opt${currency === opt.symbol ? " selected" : ""}`}
+                  type="button"
+                  onClick={() => {
+                    setCurrency(opt.symbol);
+                    localStorage.setItem("lume_currency", opt.symbol);
+                    setShowCurrencyModal(false);
+                  }}
+                >
+                  <span className="currency-opt-symbol">{opt.symbol}</span>
+                  <span className="currency-opt-label">{opt.label}</span>
+                  {currency === opt.symbol && <span className="currency-opt-check">✓</span>}
+                </button>
+              ))}
+              <button className="modal-cancel" style={{marginTop:16}} type="button" onClick={() => setShowCurrencyModal(false)}>Fechar</button>
+            </div>
+          </div>
+        )}
+
+        {/* Budget Alert Config Modal */}
+        {showBudgetModal && (
+          <div className="modal-overlay" onClick={() => setShowBudgetModal(false)}>
+            <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-title">Alerta de Orçamento</div>
+              <p style={{color:"#888",fontSize:13,marginBottom:16}}>Receba um aviso quando seus gastos atingirem uma porcentagem da sua renda.</p>
+              <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                {[50,70,80,90].map((pct) => (
+                  <button
+                    key={pct}
+                    className={`currency-opt${budgetAlertPct === pct ? " selected" : ""}`}
+                    type="button"
+                    onClick={() => {
+                      setBudgetAlertPct(pct);
+                      setBudgetAlertDismissed(false);
+                      localStorage.setItem("lume_budget_pct", String(pct));
+                      setShowBudgetModal(false);
+                    }}
+                  >
+                    <span className="currency-opt-symbol">{pct}%</span>
+                    <span className="currency-opt-label">Alertar ao gastar {pct}% da renda</span>
+                    {budgetAlertPct === pct && <span className="currency-opt-check">✓</span>}
+                  </button>
+                ))}
+              </div>
+              <button className="modal-cancel" style={{marginTop:16}} type="button" onClick={() => setShowBudgetModal(false)}>Fechar</button>
+            </div>
+          </div>
+        )}
+
         {showEditProfile && (
           <div className="modal-overlay" onClick={() => setShowEditProfile(false)}>
             <div className="modal-box" onClick={(e) => e.stopPropagation()}>

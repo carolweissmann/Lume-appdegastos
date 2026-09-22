@@ -1699,3 +1699,69 @@
   padding: 14px;
   cursor: pointer;
 }
+
+/* ── budget toast ── */
+.budget-toast {
+  position: absolute;
+  top: 72px;
+  left: 16px;
+  right: 16px;
+  background: #2d1800;
+  border: 1px solid #F97316;
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 50;
+  animation: slideDown 0.3s ease;
+}
+@keyframes slideDown {
+  from { transform: translateY(-12px); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+.budget-toast-icon { font-size: 18px; flex-shrink: 0; }
+.budget-toast-text { flex: 1; font-size: 13px; color: #fbbf24; line-height: 1.4; }
+.budget-toast-text strong { color: #F97316; }
+.budget-toast-close {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px;
+  flex-shrink: 0;
+}
+
+/* ── currency option buttons ── */
+.currency-opt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #222;
+  border: 2px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 14px;
+  width: 100%;
+  cursor: pointer;
+  transition: border-color 0.18s, background 0.18s;
+  margin-bottom: 4px;
+}
+.currency-opt.selected { border-color: #E85002; background: #E8500210; }
+.currency-opt-symbol {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  width: 28px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.currency-opt-label { flex: 1; font-size: 14px; color: #ccc; text-align: left; }
+.currency-opt-check { color: #E85002; font-size: 16px; font-weight: 700; }
+
+/* ── settings row value badge ── */
+.settings-row-value {
+  font-size: 13px;
+  color: #888;
+  margin-right: 4px;
+}
