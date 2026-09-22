@@ -91,7 +91,7 @@ function CategoriesView({
 
 function App() {
   const [screen, setScreen] = useState<
-    "splash" | "login" | "register" | "setup" | "dashboard" | "add" | "transactions" | "settings"
+    "splash" | "login" | "register" | "setup" | "dashboard" | "add" | "transactions" | "settings" | "settings-profile" | "settings-notifications" | "settings-security" | "settings-currency" | "settings-start-month" | "settings-budget" | "settings-export" | "settings-categories"
   >("splash");
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -123,6 +123,16 @@ function App() {
   const [budgetAlertPct, setBudgetAlertPct] = useState<number>(() => Number(localStorage.getItem("lume_budget_pct") || "80"));
   const [showBudgetModal, setShowBudgetModal] = useState(false);
   const [budgetAlertDismissed, setBudgetAlertDismissed] = useState(false);
+  const [txType, setTxType] = useState<"expense" | "income">("expense");
+  const [notifPush, setNotifPush] = useState(() => localStorage.getItem("lume_notif_push") !== "false");
+  const [notifMarketing, setNotifMarketing] = useState(() => localStorage.getItem("lume_notif_marketing") === "true");
+  const [notifEmail, setNotifEmail] = useState(() => localStorage.getItem("lume_notif_email") !== "false");
+  const [biometric, setBiometric] = useState(() => localStorage.getItem("lume_biometric") === "true");
+  const [monthlyBudget, setMonthlyBudget] = useState<string>(() => localStorage.getItem("lume_monthly_budget") || "");
+  const [savingsGoal, setSavingsGoal] = useState<string>(() => localStorage.getItem("lume_savings_goal") || "20");
+  const [startDay, setStartDay] = useState<number>(() => Number(localStorage.getItem("lume_start_day") || "1"));
+  const [exportFormat, setExportFormat] = useState<"csv" | "pdf">("csv");
+  const [exportPeriod, setExportPeriod] = useState<string>("this_month");
   const [income, setIncome] = useState("");
 const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string}[]>([
   { name: "", amount: "" }
@@ -1276,7 +1286,7 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
       {/* ── Settings ── */}
       <div
         id="screen-settings"
-        className={`screen ${screen === "settings" ? "" : "is-offscreen-right"}`}
+        className={`screen ${screen === "settings" ? "" : ["settings-profile","settings-notifications","settings-security","settings-currency","settings-start-month","settings-budget","settings-export","settings-categories"].includes(screen) ? "is-offscreen-left" : "is-offscreen-right"}`}
       >
         <div className="settings-scroll">
           {/* Header */}
@@ -1311,7 +1321,7 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
                 })()}
               </div>
             </div>
-            <button className="settings-edit-btn" type="button" onClick={() => setShowEditProfile(true)}>
+            <button className="settings-edit-btn" type="button" onClick={() => setScreen("settings-profile")}>
               <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
               </svg>
@@ -1321,7 +1331,7 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
           {/* CONTA */}
           <div className="settings-section-label">CONTA</div>
           <div className="settings-group">
-            <button className="settings-row" type="button" onClick={() => setShowEditProfile(true)}>
+            <button className="settings-row" type="button" onClick={() => setScreen("settings-profile")}>
               <div className="settings-row-icon" style={{background:"#1a1a2e"}}>
                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#818CF8" strokeWidth="1.8">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
@@ -1333,7 +1343,7 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
               </svg>
             </button>
             <div className="settings-divider" />
-            <button className="settings-row" type="button" onClick={() => setShowBudgetModal(true)}>
+            <button className="settings-row" type="button" onClick={() => setScreen("settings-budget")}>
               <div className="settings-row-icon" style={{background:"#1a2e1a"}}>
                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#34D399" strokeWidth="1.8">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
@@ -1362,7 +1372,7 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
           {/* PREFERÊNCIAS */}
           <div className="settings-section-label">PREFERÊNCIAS</div>
           <div className="settings-group">
-            <button className="settings-row" type="button" onClick={() => setShowCurrencyModal(true)}>
+            <button className="settings-row" type="button" onClick={() => setScreen("settings-currency")}>
               <div className="settings-row-icon" style={{background:"#1a2e2a"}}>
                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#2DD4BF" strokeWidth="1.8">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -1391,7 +1401,7 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
           {/* DADOS */}
           <div className="settings-section-label">DADOS</div>
           <div className="settings-group">
-            <button className="settings-row" type="button">
+            <button className="settings-row" type="button" onClick={() => setScreen("settings-export")}>
               <div className="settings-row-icon" style={{background:"#1a2416"}}>
                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#86EFAC" strokeWidth="1.8">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -1403,7 +1413,7 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
               </svg>
             </button>
             <div className="settings-divider" />
-            <button className="settings-row" type="button">
+            <button className="settings-row" type="button" onClick={() => setScreen("settings-categories")}>
               <div className="settings-row-icon" style={{background:"#2e1f0a"}}>
                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#FCD34D" strokeWidth="1.8">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
@@ -1476,105 +1486,15 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
         </div>
 
         {/* Edit Profile Modal */}
-        {/* Currency Modal */}
-        {showCurrencyModal && (
-          <div className="modal-overlay" onClick={() => setShowCurrencyModal(false)}>
-            <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-title">Selecionar Moeda</div>
-              {[
-                { symbol: "R$", label: "Real Brasileiro (R$)" },
-                { symbol: "$",  label: "Dólar Americano ($)" },
-                { symbol: "€",  label: "Euro (€)" },
-                { symbol: "£",  label: "Libra Esterlina (£)" },
-              ].map((opt) => (
-                <button
-                  key={opt.symbol}
-                  className={`currency-opt${currency === opt.symbol ? " selected" : ""}`}
-                  type="button"
-                  onClick={() => {
-                    setCurrency(opt.symbol);
-                    localStorage.setItem("lume_currency", opt.symbol);
-                    setShowCurrencyModal(false);
-                  }}
-                >
-                  <span className="currency-opt-symbol">{opt.symbol}</span>
-                  <span className="currency-opt-label">{opt.label}</span>
-                  {currency === opt.symbol && <span className="currency-opt-check">✓</span>}
-                </button>
-              ))}
               <button className="modal-cancel" style={{marginTop:16}} type="button" onClick={() => setShowCurrencyModal(false)}>Fechar</button>
             </div>
           </div>
         )}
-
-        {/* Budget Alert Config Modal */}
-        {showBudgetModal && (
-          <div className="modal-overlay" onClick={() => setShowBudgetModal(false)}>
-            <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-title">Alerta de Orçamento</div>
-              <p style={{color:"#888",fontSize:13,marginBottom:16}}>Receba um aviso quando seus gastos atingirem uma porcentagem da sua renda.</p>
-              <div style={{display:"flex",flexDirection:"column",gap:10}}>
-                {[50,70,80,90].map((pct) => (
-                  <button
-                    key={pct}
-                    className={`currency-opt${budgetAlertPct === pct ? " selected" : ""}`}
-                    type="button"
-                    onClick={() => {
-                      setBudgetAlertPct(pct);
-                      setBudgetAlertDismissed(false);
-                      localStorage.setItem("lume_budget_pct", String(pct));
-                      setShowBudgetModal(false);
-                    }}
-                  >
-                    <span className="currency-opt-symbol">{pct}%</span>
-                    <span className="currency-opt-label">Alertar ao gastar {pct}% da renda</span>
-                    {budgetAlertPct === pct && <span className="currency-opt-check">✓</span>}
-                  </button>
-                ))}
               </div>
               <button className="modal-cancel" style={{marginTop:16}} type="button" onClick={() => setShowBudgetModal(false)}>Fechar</button>
             </div>
           </div>
         )}
-
-        {showEditProfile && (
-          <div className="modal-overlay" onClick={() => setShowEditProfile(false)}>
-            <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-title">Editar Perfil</div>
-              <label className="add-label" style={{marginTop:8}}>Nome</label>
-              <input
-                className="add-input"
-                type="text"
-                placeholder="Seu nome"
-                defaultValue={(() => { const u = JSON.parse(localStorage.getItem("lume_user") || "{}"); return u.name || ""; })()}
-                onChange={(e) => setEditProfileName(e.target.value)}
-              />
-              <label className="add-label" style={{marginTop:12}}>E-mail</label>
-              <input
-                className="add-input"
-                type="email"
-                placeholder="seu@email.com"
-                defaultValue={(() => { const u = JSON.parse(localStorage.getItem("lume_user") || "{}"); return u.email || ""; })()}
-                onChange={(e) => setEditProfileEmail(e.target.value)}
-              />
-              <div className="modal-actions">
-                <button className="modal-cancel" type="button" onClick={() => setShowEditProfile(false)}>Cancelar</button>
-                <button className="modal-save" type="button" onClick={() => {
-                  const u = JSON.parse(localStorage.getItem("lume_user") || "{}");
-                  if (editProfileName) u.name = editProfileName;
-                  if (editProfileEmail) u.email = editProfileEmail;
-                  localStorage.setItem("lume_user", JSON.stringify(u));
-                  setShowEditProfile(false);
-                }}>Salvar</button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-    </div>
-
-  );
-}
+$1
 
 export default App;
