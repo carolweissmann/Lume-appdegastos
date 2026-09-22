@@ -948,53 +948,88 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
         className={`screen ${screen === "add" ? "" : "is-offscreen-right"}`}
         id="screen-add"
       >
+        {/* Header */}
         <div className="add-header">
-          <button
-            className="add-back"
-            type="button"
-            onClick={() => setScreen("dashboard")}
-          >
-            <svg
-              width="20"
-              height="20"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15.75 19.5L8.25 12l7.5-7.5"
-              />
+          <button className="add-back" type="button" onClick={() => { setScreen("dashboard"); setEditingId(null); setAmount(""); setDescription(""); setCategory(""); setDate(""); }}>
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
             </svg>
           </button>
-          <h1 className="add-title">Novo Gasto</h1>
-          <div style={{ width: 20 }} />
+          <h1 className="add-title">{editingId ? "Editar" : "Nova Transação"}</h1>
+          <div style={{width:20}} />
         </div>
 
-        <div className="add-amount-wrap">
-          <span className="add-currency">{currency}</span>
+        {/* Expense / Income toggle */}
+        <div className="tx-type-toggle">
+          <button
+            type="button"
+            className={`tx-type-btn${txType === "expense" ? " active expense" : ""}`}
+            onClick={() => setTxType("expense")}
+          >
+            <span className="tx-type-icon">↑</span> Despesa
+          </button>
+          <button
+            type="button"
+            className={`tx-type-btn${txType === "income" ? " active income" : ""}`}
+            onClick={() => setTxType("income")}
+          >
+            <span className="tx-type-icon">↓</span> Receita
+          </button>
+        </div>
+
+        {/* Large amount display */}
+        <div className={`add-amount-hero ${txType === "income" ? "income" : "expense"}`}>
+          <span className="add-amount-hero-symbol">{currency}</span>
           <input
-            className="add-amount-input"
+            className="add-amount-hero-input"
             type="number"
+            inputMode="decimal"
             placeholder="0,00"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
           />
         </div>
 
+        {/* Preview card — shows when category is selected */}
+        {category && (() => {
+          const cats: Record<string, {icon:string;label:string;color:string}> = {
+            housing:       {icon:"🏠",label:"Moradia",     color:"#7C3AED"},
+            food:          {icon:"🍔",label:"Alimentação", color:"#EC4899"},
+            transport:     {icon:"🚗",label:"Transporte",  color:"#F97316"},
+            entertainment: {icon:"🎬",label:"Lazer",       color:"#8B5CF6"},
+            health:        {icon:"💊",label:"Saúde",       color:"#EF4444"},
+            other:         {icon:"📦",label:"Outros",      color:"#F59E0B"},
+          };
+          const cat = cats[category];
+          return (
+            <div className="add-preview-card">
+              <div className="add-preview-icon" style={{background: cat.color + "22"}}>
+                {cat.icon}
+              </div>
+              <div className="add-preview-info">
+                <span className="add-preview-label">{description || cat.label}</span>
+                <span className="add-preview-sub">{cat.label} · {date || "sem data"}</span>
+              </div>
+              <span className={`add-preview-value ${txType}`}>
+                {txType === "expense" ? "-" : "+"}{currency} {parseFloat(amount || "0").toFixed(2)}
+              </span>
+            </div>
+          );
+        })()}
+
+        {/* Form */}
         <div className="add-form">
           <div className="add-field">
             <label className="add-label">Descrição</label>
             <input
               className="add-input"
               type="text"
-              placeholder="Em que você gastou?"
+              placeholder={txType === "expense" ? "Em que você gastou?" : "De onde veio essa receita?"}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
+
           <div className="add-field">
             <label className="add-label">Categoria</label>
             <div className="cat-grid">
@@ -1005,20 +1040,21 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
                 { key: "entertainment", icon: "🎬", label: "Lazer",       color: "#8B5CF6" },
                 { key: "health",        icon: "💊", label: "Saúde",       color: "#EF4444" },
                 { key: "other",         icon: "📦", label: "Outros",      color: "#F59E0B" },
-              ].map((c) => (
+              ].map((cat) => (
                 <button
-                  key={c.key}
+                  key={cat.key}
                   type="button"
-                  className={`cat-grid-btn${category === c.key ? " selected" : ""}`}
-                  style={category === c.key ? { borderColor: c.color, background: c.color + "22" } : {}}
-                  onClick={() => setCategory(c.key)}
+                  className={`cat-grid-btn${category === cat.key ? " selected" : ""}`}
+                  style={category === cat.key ? { borderColor: cat.color, background: cat.color + "22" } : {}}
+                  onClick={() => setCategory(cat.key)}
                 >
-                  <span className="cat-grid-icon">{c.icon}</span>
-                  <span className="cat-grid-label">{c.label}</span>
+                  <span className="cat-grid-icon">{cat.icon}</span>
+                  <span className="cat-grid-label">{cat.label}</span>
                 </button>
               ))}
             </div>
           </div>
+
           <div className="add-field">
             <label className="add-label">Data</label>
             <input
@@ -1031,9 +1067,14 @@ const [fixedExpenses, setFixedExpenses] = useState<{name: string; amount: string
           </div>
         </div>
 
-        <button className="add-btn" type="button" onClick={handleSaveExpense}>
-          Salvar Gasto
+        <button
+          className={`add-btn ${txType}`}
+          type="button"
+          onClick={handleSaveExpense}
+        >
+          {editingId ? "Salvar Alterações" : txType === "expense" ? "Registrar Despesa" : "Registrar Receita"}
         </button>
+        <div style={{height:32}} />
       </div>
             {/* ── Transactions ── */}
       <div
